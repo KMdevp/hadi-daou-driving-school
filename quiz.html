@@ -385,7 +385,7 @@
     const jumpBtn = document.getElementById("jumpBtn");
 
     function normalizeText(value) {
-      return String(value || "").trim().toLowerCase();
+      return String(value || "").trim().toLowerCase().replace(/\s+/g, "");
     }
 
     function getQuestionText(questionObj, lang) {
@@ -406,102 +406,132 @@
       return shuffleArray(array).slice(0, count);
     }
 
-    function buildQuizQuestions() {
-      if (!Array.isArray(allQuestions)) {
-        return [];
-      }
+    function isSignQuestion(q) {
+      const category = normalizeText(q.category);
+      const type = normalizeText(q.type);
 
-      const test = normalizeText(selectedTest);
-
-      // ✅ Sign test stays the same/full signs only
-      if (test === "sign" || test === "signs") {
-        return allQuestions.filter(q => {
-          const category = normalizeText(q.category);
-          const type = normalizeText(q.type);
-
-          return type === "sign" || category === "sign" || category === "signs";
-        });
-      }
-
-      const testRules = {
-        public_car: {
-          mainCategories: ["public_car"],
-          licenses: ["c"]
-        },
-
-        private_car: {
-          mainCategories: ["private_car"],
-          licenses: ["g", "bc", "ed"]
-        },
-
-        motorcycle: {
-          mainCategories: ["motorcycle"],
-          licenses: ["a"]
-        },
-
-        minibus: {
-          mainCategories: ["minibus", "mini_bus"],
-          licenses: ["c"]
-        },
-
-        mini_bus: {
-          mainCategories: ["minibus", "mini_bus"],
-          licenses: ["c"]
-        },
-
-        small_truck: {
-          mainCategories: ["small_truck", "mini_truck", "minitruck"],
-          licenses: ["c"]
-        },
-
-        mini_truck: {
-          mainCategories: ["small_truck", "mini_truck", "minitruck"],
-          licenses: ["c"]
-        },
-
-        minitruck: {
-          mainCategories: ["small_truck", "mini_truck", "minitruck"],
-          licenses: ["c"]
-        }
-      };
-
-      const rule = testRules[test];
-
-      if (!rule) {
-        return allQuestions.filter(q => normalizeText(q.category) === test);
-      }
-
-      // ✅ 20 law/main questions from selected category
-      const mainQuestions = allQuestions.filter(q => {
-        const category = normalizeText(q.category);
-        return rule.mainCategories.includes(category);
-      });
-
-      // ✅ 5 safety/law questions by license
-      const safetyLawQuestions = allQuestions.filter(q => {
-        const category = normalizeText(q.category);
-        const license = normalizeText(q.license || q.licence).replace(/\s+/g, "");
-
-        return (
-          (category === "safety" || category === "law") &&
-          rule.licenses.includes(license)
-        );
-      });
-
-      // ✅ 5 signs questions
-      const signQuestions = allQuestions.filter(q => {
-        const category = normalizeText(q.category);
-        const type = normalizeText(q.type);
-
-        return type === "sign" || category === "sign" || category === "signs";
-      });
-
-      return [
-        ...takeRandom(mainQuestions, 20),
-        ...takeRandom(safetyLawQuestions, 5),
-        ...takeRandom(signQuestions, 5)
-      ];
+      return type === "sign" || category === "sign" || category === "signs";
     }
+
+    function getLicense(q) {
+      return normalizeText(q.license || q.licence);
+    }
+
+  function buildQuizQuestions() {
+
+  if (!Array.isArray(allQuestions)) {
+    return [];
+  }
+
+  const test = normalizeText(selectedTest);
+
+  const allSigns = allQuestions.filter(q =>
+    isSignQuestion(q)
+  );
+
+  if (test === "sign" || test === "signs") {
+    return shuffleArray(allSigns);
+  }
+
+  const testRules = {
+    public_car: {
+      categories: ["public_car", "public"],
+      licenses: ["ed", "g", "bc", "c", "b"]
+    },
+
+    private_car: {
+      categories: ["private_car", "private"],
+      licenses: ["ed", "g", "bc"]
+    },
+
+    motorcycle: {
+      categories: ["motorcycle"],
+      licenses: ["a"]
+    },
+
+    minibus: {
+      categories: ["minibus"],
+      licenses: ["c"]
+    },
+
+    small_truck: {
+      categories: ["small_truck", "mini_truck", "minitruck"],
+      licenses: ["c"]
+    },
+
+    mini_truck: {
+      categories: ["small_truck", "mini_truck", "minitruck"],
+      licenses: ["c"]
+    },
+
+    minitruck: {
+      categories: ["small_truck", "mini_truck", "minitruck"],
+      licenses: ["c"]
+    }
+  };
+
+  const rule = testRules[test];
+
+  if (!rule) {
+    return [];
+  }
+
+  const lawQuestions = allQuestions.filter(q => {
+    const category = normalizeText(q.category);
+    const license = getLicense(q);
+
+    return (
+      !isSignQuestion(q) &&
+      category !== "safety" &&
+      (
+        rule.categories.includes(category) ||
+        rule.licenses.includes(license)
+      )
+    );
+  });
+
+  const safetyQuestions = allQuestions.filter(q => {
+    const category = normalizeText(q.category);
+    const license = getLicense(q);
+
+    return (
+      !isSignQuestion(q) &&
+      category === "safety" &&
+      rule.licenses.includes(license)
+    );
+  });
+
+  const finalSigns = takeRandom(allSigns, 5);
+
+  let finalLaw = takeRandom(lawQuestions, 20);
+  let finalSafety = takeRandom(safetyQuestions, 5);
+
+  let finalQuestions = [
+    ...finalLaw,
+    ...finalSafety,
+    ...finalSigns
+  ];
+
+  // If less than 30, fill from law/safety of same test
+  if (finalQuestions.length < 30) {
+    const alreadyUsed = new Set(finalQuestions);
+
+    const extraPool = shuffleArray([
+      ...lawQuestions,
+      ...safetyQuestions
+    ]).filter(q => !alreadyUsed.has(q));
+
+    const missing = 30 - finalQuestions.length;
+
+    finalQuestions = [
+      ...finalQuestions,
+      ...extraPool.slice(0, missing)
+    ];
+  }
+
+  return shuffleArray(finalQuestions);
+
+}
 
     let questions = buildQuizQuestions();
 
@@ -569,7 +599,7 @@
       questionText.textContent = getQuestionText(currentQuestion.question, selectedLanguage);
       answersContainer.innerHTML = "";
 
-      if (normalizeText(currentQuestion.type) === "sign" && currentQuestion.image) {
+      if (isSignQuestion(currentQuestion) && currentQuestion.image) {
         questionImage.src = currentQuestion.image;
         questionImage.style.display = "block";
       } else {
