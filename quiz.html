@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a, #1e3a8a);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: 20px;
+      padding: 30px 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .lang-select {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .progress,
+    .score-box {
+      font-size: 16px;
+      font-weight: bold;
+      color: #1e293b;
+    }
+
+    .question-jump {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .question-jump input {
+      width: 110px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .jump-btn {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      background: #1d4ed8;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .question-box {
+      margin-top: 20px;
+    }
+
+    .question-image {
+      width: 100%;
+      max-width: 320px;
+      height: 220px;
+      object-fit: contain;
+      display: none;
+      margin: 0 auto 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+      padding: 10px;
+    }
+
+    .question-title {
+      font-size: 24px;
+      color: #0f172a;
+      margin-bottom: 20px;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    .answers {
+      display: grid;
+      gap: 12px;
+    }
+
+    .answer-btn {
+      width: 100%;
+      border: 2px solid #cbd5e1;
+      background: #f8fafc;
+      color: #0f172a;
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: left;
+      transition: 0.3s;
+    }
+
+    .answer-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .answer-btn.correct {
+      background: #16a34a;
+      color: white;
+      border-color: #16a34a;
+    }
+
+    .answer-btn.wrong {
+      background: #dc2626;
+      color: white;
+      border-color: #dc2626;
+    }
+
+    .answer-btn.selected {
+      border-color: #1d4ed8;
+      background: #dbeafe;
+      color: #0f172a;
+    }
+
+    .answer-btn.disabled {
+      pointer-events: none;
+      opacity: 0.95;
+    }
+
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      min-height: 24px;
+      text-align: left;
+    }
+
+    .controls {
+      margin-top: 25px;
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .control-btn {
+      flex: 1;
+      min-width: 160px;
+      border: none;
+      padding: 15px;
+      font-size: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .check-btn {
+      background: red;
+      color: white;
+    }
+
+    .check-btn:hover {
+      background: rgb(232, 111, 111);
+    }
+
+    .next-btn {
+      background: #1d4ed8;
+      color: white;
+    }
+
+    .next-btn:hover {
+      background: #2563eb;
+    }
+
+    .next-btn:disabled,
+    .check-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 18px;
+      color: #1d4ed8;
+      text-decoration: none;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    .result-box {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .result-title {
+      font-size: 30px;
+      margin-bottom: 15px;
+      color: #0f172a;
+    }
+
+    .result-score {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #1e293b;
+      font-weight: bold;
+    }
+
+    .restart-btn {
+      border: none;
+      padding: 15px 22px;
+      font-size: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      background: red;
+      color: white;
+    }
+
+    .restart-btn:hover {
+      background: rgb(232, 111, 111);
+    }
+
+    @media (max-width: 600px) {
+      .question-title {
+        font-size: 20px;
+      }
+
+      .answer-btn {
+        font-size: 15px;
+      }
+
+      .control-btn {
+        width: 100%;
+      }
+
+      .controls {
+        flex-direction: column;
+      }
+
+      .top-bar {
+        justify-content: center;
+      }
+
+      .question-image {
+        height: 180px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container" id="app">
+    <div class="top-bar">
+      <select class="lang-select" id="languageSwitcher">
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="ar">العربية</option>
+      </select>
+    </div>
+
+    <div class="top-row">
+      <div class="progress" id="progressText">Question 1 / 1</div>
+      <div class="score-box" id="scoreText">Score: 0</div>
+    </div>
+
+    <div class="question-jump">
+      <input type="number" id="jumpInput" min="1" placeholder="Question #">
+      <button class="jump-btn" id="jumpBtn">Go</button>
+    </div>
+
+    <div class="question-box">
+      <img id="questionImage" class="question-image" src="" alt="Question image">
+      <h2 class="question-title" id="questionText"></h2>
+      <div class="answers" id="answersContainer"></div>
+      <div class="message" id="messageBox"></div>
+
+      <div class="controls">
+        <button class="control-btn check-btn" id="checkBtn">Check Answer</button>
+        <button class="control-btn next-btn" id="nextBtn" disabled>Next Question</button>
+      </div>
+
+      <a href="index.html" class="back-link" id="backLink">Back to Home</a>
+    </div>
+  </div>
+
+  <script src="js/questions.js"></script>
+
+  <script>
+    let selectedLanguage = localStorage.getItem("selectedLanguage") || "en";
+    const selectedTest = localStorage.getItem("selectedTest") || "public_car";
+
+    const uiText = {
+      en: {
+        progress: "Question",
+        score: "Score",
+        check: "Check Answer",
+        next: "Next Question",
+        back: "Back to Home",
+        correct: "Correct answer!",
+        wrong: "Wrong answer!",
+        resultTitle: "Test Finished",
+        finalScore: "Your score",
+        restart: "Go Back Home",
+        noQuestions: "No questions found for this test.",
+        go: "Go",
+        placeholder: "Question #"
+      },
+      fr: {
+        progress: "Question",
+        score: "Score",
+        check: "Vérifier la réponse",
+        next: "Question suivante",
+        back: "Retour à l'accueil",
+        correct: "Bonne réponse !",
+        wrong: "Mauvaise réponse !",
+        resultTitle: "Test terminé",
+        finalScore: "Votre score",
+        restart: "Retour à l'accueil",
+        noQuestions: "Aucune question trouvée pour ce test.",
+        go: "Aller",
+        placeholder: "Question #"
+      },
+      ar: {
+        progress: "السؤال",
+        score: "النتيجة",
+        check: "تحقق من الجواب",
+        next: "السؤال التالي",
+        back: "العودة إلى الصفحة الرئيسية",
+        correct: "إجابة صحيحة!",
+        wrong: "إجابة خاطئة!",
+        resultTitle: "انتهى الامتحان",
+        finalScore: "نتيجتك",
+        restart: "العودة إلى الرئيسية",
+        noQuestions: "لا توجد أسئلة لهذا الامتحان.",
+        go: "اذهب",
+        placeholder: "رقم السؤال"
+      }
+    };
+
+    const switcher = document.getElementById("languageSwitcher");
+    const progressText = document.getElementById("progressText");
+    const scoreText = document.getElementById("scoreText");
+    const questionText = document.getElementById("questionText");
+    const answersContainer = document.getElementById("answersContainer");
+    const messageBox = document.getElementById("messageBox");
+    const checkBtn = document.getElementById("checkBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const backLink = document.getElementById("backLink");
+    const questionImage = document.getElementById("questionImage");
+    const app = document.getElementById("app");
+    const jumpInput = document.getElementById("jumpInput");
+    const jumpBtn = document.getElementById("jumpBtn");
+
+    function normalizeText(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function getQuestionText(questionObj, lang) {
+      if (!questionObj) return "";
+      return questionObj[lang] || questionObj.en || "";
+    }
+
+    function getOptions(optionsObj, lang) {
+      if (!optionsObj) return [];
+      return optionsObj[lang] || optionsObj.en || [];
+    }
+
+    function shuffleArray(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    function takeRandom(array, count) {
+      return shuffleArray(array).slice(0, count);
+    }
+
+    function buildQuizQuestions() {
+      if (!Array.isArray(allQuestions)) {
+        return [];
+      }
+
+      const test = normalizeText(selectedTest);
+
+      // ✅ Sign test stays the same/full signs only
+      if (test === "sign" || test === "signs") {
+        return allQuestions.filter(q => {
+          const category = normalizeText(q.category);
+          const type = normalizeText(q.type);
+
+          return type === "sign" || category === "sign" || category === "signs";
+        });
+      }
+
+      const testRules = {
+        public_car: {
+          mainCategories: ["public_car"],
+          licenses: ["c"]
+        },
+
+        private_car: {
+          mainCategories: ["private_car"],
+          licenses: ["g", "bc", "ed"]
+        },
+
+        motorcycle: {
+          mainCategories: ["motorcycle"],
+          licenses: ["a"]
+        },
+
+        minibus: {
+          mainCategories: ["minibus", "mini_bus"],
+          licenses: ["c"]
+        },
+
+        mini_bus: {
+          mainCategories: ["minibus", "mini_bus"],
+          licenses: ["c"]
+        },
+
+        small_truck: {
+          mainCategories: ["small_truck", "mini_truck", "minitruck"],
+          licenses: ["c"]
+        },
+
+        mini_truck: {
+          mainCategories: ["small_truck", "mini_truck", "minitruck"],
+          licenses: ["c"]
+        },
+
+        minitruck: {
+          mainCategories: ["small_truck", "mini_truck", "minitruck"],
+          licenses: ["c"]
+        }
+      };
+
+      const rule = testRules[test];
+
+      if (!rule) {
+        return allQuestions.filter(q => normalizeText(q.category) === test);
+      }
+
+      // ✅ 20 law/main questions from selected category
+      const mainQuestions = allQuestions.filter(q => {
+        const category = normalizeText(q.category);
+        return rule.mainCategories.includes(category);
+      });
+
+      // ✅ 5 safety/law questions by license
+      const safetyLawQuestions = allQuestions.filter(q => {
+        const category = normalizeText(q.category);
+        const license = normalizeText(q.license || q.licence).replace(/\s+/g, "");
+
+        return (
+          (category === "safety" || category === "law") &&
+          rule.licenses.includes(license)
+        );
+      });
+
+      // ✅ 5 signs questions
+      const signQuestions = allQuestions.filter(q => {
+        const category = normalizeText(q.category);
+        const type = normalizeText(q.type);
+
+        return type === "sign" || category === "sign" || category === "signs";
+      });
+
+      return [
+        ...takeRandom(mainQuestions, 20),
+        ...takeRandom(safetyLawQuestions, 5),
+        ...takeRandom(signQuestions, 5)
+      ];
+    }
+
+    let questions = buildQuizQuestions();
+
+    if (!questions.length) {
+      const t = uiText[selectedLanguage];
+
+      app.innerHTML = `
+        <div class="result-box">
+          <h2 class="result-title">${t.noQuestions}</h2>
+          <p style="font-weight:bold;color:#475569;">
+            Selected test: ${selectedTest}
+          </p>
+          <button class="restart-btn" onclick="window.location.href='index.html'">${t.restart}</button>
+        </div>
+      `;
+
+      throw new Error("No questions found for selected test: " + selectedTest);
+    }
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let selectedAnswerIndex = null;
+    let answerChecked = false;
+
+    switcher.value = selectedLanguage;
+
+    function updateTopInfo() {
+      const t = uiText[selectedLanguage];
+
+      progressText.textContent = `${t.progress} ${currentQuestionIndex + 1} / ${questions.length}`;
+      scoreText.textContent = `${t.score}: ${score}`;
+      jumpInput.max = questions.length;
+      jumpInput.placeholder = t.placeholder;
+      jumpBtn.textContent = t.go;
+    }
+
+    function applyLanguageChange() {
+      const t = uiText[selectedLanguage];
+
+      checkBtn.textContent = t.check;
+      nextBtn.textContent = t.next;
+      backLink.textContent = t.back;
+      jumpBtn.textContent = t.go;
+      jumpInput.placeholder = t.placeholder;
+
+      if (selectedLanguage === "ar") {
+        document.documentElement.lang = "ar";
+        document.documentElement.dir = "rtl";
+        questionText.style.textAlign = "right";
+        messageBox.style.textAlign = "right";
+      } else {
+        document.documentElement.lang = selectedLanguage;
+        document.documentElement.dir = "ltr";
+        questionText.style.textAlign = "left";
+        messageBox.style.textAlign = "left";
+      }
+
+      renderCurrentQuestion();
+    }
+
+    function renderCurrentQuestion() {
+      const t = uiText[selectedLanguage];
+      const currentQuestion = questions[currentQuestionIndex];
+
+      questionText.textContent = getQuestionText(currentQuestion.question, selectedLanguage);
+      answersContainer.innerHTML = "";
+
+      if (normalizeText(currentQuestion.type) === "sign" && currentQuestion.image) {
+        questionImage.src = currentQuestion.image;
+        questionImage.style.display = "block";
+      } else {
+        questionImage.style.display = "none";
+        questionImage.src = "";
+      }
+
+      const currentOptions = getOptions(currentQuestion.options, selectedLanguage);
+
+      currentOptions.forEach((option, index) => {
+        const btn = document.createElement("button");
+
+        btn.className = "answer-btn";
+        btn.textContent = option;
+        btn.style.textAlign = selectedLanguage === "ar" ? "right" : "left";
+
+        if (!answerChecked) {
+          if (selectedAnswerIndex === index) {
+            btn.classList.add("selected");
+          }
+
+          btn.addEventListener("click", () => {
+            if (answerChecked) return;
+
+            selectedAnswerIndex = index;
+            renderCurrentQuestion();
+          });
+        } else {
+          btn.classList.add("disabled");
+
+          if (index === currentQuestion.correct) {
+            btn.classList.add("correct");
+          }
+
+          if (index === selectedAnswerIndex && index !== currentQuestion.correct) {
+            btn.classList.add("wrong");
+          }
+        }
+
+        answersContainer.appendChild(btn);
+      });
+
+      if (answerChecked) {
+        if (selectedAnswerIndex === currentQuestion.correct) {
+          messageBox.textContent = t.correct;
+          messageBox.style.color = "#16a34a";
+        } else {
+          messageBox.textContent = t.wrong;
+          messageBox.style.color = "#dc2626";
+        }
+      } else {
+        messageBox.textContent = "";
+      }
+
+      updateTopInfo();
+    }
+
+    function loadQuestion() {
+      selectedAnswerIndex = null;
+      answerChecked = false;
+      checkBtn.disabled = false;
+      nextBtn.disabled = true;
+      renderCurrentQuestion();
+    }
+
+    function jumpToQuestion() {
+      const questionNumber = parseInt(jumpInput.value);
+
+      if (isNaN(questionNumber)) return;
+
+      if (questionNumber < 1 || questionNumber > questions.length) {
+        jumpInput.value = "";
+        return;
+      }
+
+      currentQuestionIndex = questionNumber - 1;
+      loadQuestion();
+      jumpInput.value = "";
+    }
+
+    jumpBtn.addEventListener("click", jumpToQuestion);
+
+    jumpInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        jumpToQuestion();
+      }
+    });
+
+    checkBtn.addEventListener("click", () => {
+      if (selectedAnswerIndex === null) return;
+
+      answerChecked = true;
+      checkBtn.disabled = true;
+      nextBtn.disabled = false;
+
+      if (selectedAnswerIndex === questions[currentQuestionIndex].correct) {
+        score++;
+      }
+
+      renderCurrentQuestion();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      currentQuestionIndex++;
+
+      if (currentQuestionIndex >= questions.length) {
+        showResult();
+        return;
+      }
+
+      loadQuestion();
+    });
+
+    switcher.addEventListener("change", function () {
+      selectedLanguage = this.value;
+      localStorage.setItem("selectedLanguage", selectedLanguage);
+      applyLanguageChange();
+    });
+
+    function showResult() {
+      const t = uiText[selectedLanguage];
+
+      app.innerHTML = `
+        <div class="result-box">
+          <h2 class="result-title">${t.resultTitle}</h2>
+          <div class="result-score">${t.finalScore}: ${score} / ${questions.length}</div>
+          <button class="restart-btn" onclick="window.location.href='index.html'">${t.restart}</button>
+        </div>
+      `;
+    }
+
+    applyLanguageChange();
+  </script>
+</body>
+</html>
