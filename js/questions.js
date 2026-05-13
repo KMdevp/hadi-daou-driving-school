@@ -7496,7 +7496,7 @@ options: {
         "3000 RPM"
       ]
     },
-    correct: 2
+    correct: 0
   },
 
   {
