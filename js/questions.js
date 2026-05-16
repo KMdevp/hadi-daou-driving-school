@@ -12880,7 +12880,7 @@ options: {
       "After pedestrians have stepped onto the road"
     ]
   },
-  correct: 1
+  correct: 0
 },
 {
   type: "normal",
