@@ -1628,7 +1628,7 @@ const allQuestions = [
     "Warning intersection"
   ]
 },
-  correct: 2
+  correct: 1
 },
 
 {
