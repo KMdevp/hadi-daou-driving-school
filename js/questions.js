@@ -9647,7 +9647,7 @@ options: {
         "Drive in the wrong direction"
       ]
     },
-    correct: 2
+    correct: 0
   },
 
   
